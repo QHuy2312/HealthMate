@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HealthMate</string>
+
+    <!-- ═══ Bottom Navigation ═══ -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_workout">Tập luyện</string>
+    <string name="nav_profile">Hồ sơ</string>
+
+    <!-- ═══ Login Screen ═══ -->
+    <string name="login_title">HealthMate</string>
+    <string name="login_email_hint">Email của bạn</string>
+    <string name="login_password_hint">Mật khẩu</string>
+    <string name="login_forgot_password">Quên mật khẩu?</string>
+    <string name="login_button">Đăng Nhập</string>
+    <string name="login_no_account">Chưa có tài khoản? </string>
+    <string name="login_sign_up">Tạo ngay đi!</string>
+    <string name="login_forgot_toast">Tính năng gửi mail khôi phục đang được kết nối với Firebase…</string>
+
+    <!-- ═══ Validation ═══ -->
+    <string name="validation_email_invalid">Email không đúng định dạng (ví dụ: abc@gmail.com)</string>
+    <string name="validation_password_weak">Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt</string>
+    <string name="validation_password_mismatch">Mật khẩu nhập lại không trùng khớp!</string>
+    <string name="validation_fields_required">Vui lòng điền đầy đủ thông tin!</string>
+
+    <!-- ═══ Onboarding Screen ═══ -->
+    <string name="onboarding_title">Chào mừng bạn! 🎉</string>
+    <string name="onboarding_subtitle">Cho mình biết thêm về bạn để cá nhân hóa trải nghiệm nhé!</string>
+    <string name="onboarding_weight">Cân nặng (kg)</string>
+    <string name="onboarding_height">Chiều cao (cm)</string>
+    <string name="onboarding_hint">Bạn có thể thay đổi sau trong phần Hồ sơ</string>
+    <string name="onboarding_start">Bắt đầu hành trình 🚀</string>
+
+    <!-- ═══ Home / Dashboard Screen ═══ -->
+    <string name="home_greeting">Sẵn sàng đổ mồ hôi chưa, %s? 💦</string>
+    <string name="home_subtitle">Hôm nay cùng nhau phá kỷ lục nhé!</string>
+    <string name="home_today_summary">Bảng thành tích hôm nay</string>
+    <string name="home_calories">Calo đã đốt</string>
+    <string name="home_steps">Bước chân</string>
+    <string name="home_heart_rate">Nhịp tim</string>
+    <string name="home_water">Nước (ly)</string>
+    <string name="home_streak">🔥 Chuỗi ngày: %d ngày</string>
+    <string name="home_quick_workout">Bài tập nhanh</string>
+    <string name="home_start_workout">Chiến luôn!</string>
+    <string name="home_category_yoga">🧘 Yoga</string>
+    <string name="home_category_cardio">🏃 Cardio</string>
+    <string name="home_category_strength">💪 Sức mạnh</string>
+    <string name="home_category_meditation">🧠 Thiền</string>
+    <string name="home_ai_advice_title">Chuyên gia sức khỏe AI 🤖</string>
+    <string name="home_water_add">+</string>
+    <string name="profile_badges">Huy hiệu chiến binh 🎖️</string>
+    <string name="badge_dialog_title">Chúc mừng! 🎉</string>
+    <string name="badge_dialog_message">Bạn đã mở khóa huy hiệu mới!</string>
+    <string name="badge_dialog_dismiss">Tuyệt vời! 🔥</string>
+    <string name="profile_energy_trend">Xu hướng năng lượng 📊</string>
+    <string name="profile_history">Lịch sử luyện tập ⏱️</string>
+
+    <!-- ═══ Workout Screen ═══ -->
+    <string name="workout_title">Chọn bài tập nào! 🎯</string>
+    <string name="workout_subtitle">Muốn tập gì hôm nay? Cứ chọn đi!</string>
+    <string name="workout_duration">%d phút</string>
+    <string name="workout_calories">%d calo</string>
+    <string name="workout_start">Chiến! 🔥</string>
+    <string name="workout_category_all">Tất cả</string>
+    <string name="workout_category_beginner">Mới bắt đầu</string>
+    <string name="workout_category_intermediate">Khá rồi đấy</string>
+    <string name="workout_category_advanced">Pro max</string>
+    <string name="workout_cardio_title">Cardio đốt cháy 🔥</string>
+    <string name="workout_yoga_title">Yoga thư giãn 🧘</string>
+    <string name="workout_hiit_title">HIIT cực mạnh 💥</string>
+    <string name="workout_strength_title">Tăng cơ bắp 💪</string>
+    <string name="workout_pilates_title">Pilates dẻo dai 🌸</string>
+    <string name="workout_stretch_title">Kéo giãn thả lỏng 🤸</string>
+    <string name="workout_walking_meditation">Thiền đi bộ 🚶</string>
+    <string name="workout_light_cycling">Đạp xe nhẹ 🚴</string>
+    <string name="workout_dance_fitness">Nhảy fitness 💃</string>
+    <string name="workout_swimming">Bơi lội 🏊</string>
+    <string name="workout_crossfit">CrossFit cực đỉnh 🔥</string>
+    <string name="workout_boxing">Boxing tung đấm 🥊</string>
+    <string name="workout_ga_button">Tạo lịch tập AI 🧬</string>
+    <string name="workout_ga_title">Lịch tập AI đã tạo 🧬</string>
+    <string name="workout_ga_total">Tổng: %d calo</string>
+    <string name="workout_ga_count">%d bài tập</string>
+    <string name="workout_completed">Đã xong ✅</string>
+
+    <!-- ═══ Profile Screen ═══ -->
+    <string name="profile_title">Hồ sơ chiến binh 🏆</string>
+    <string name="profile_edit">Chỉnh sửa hồ sơ</string>
+    <string name="profile_member_since">Chiến binh từ tháng 1, 2026</string>
+    <string name="profile_achievements">Thành tích siêu khủng 🏅</string>
+    <string name="profile_workouts_done">Bài tập đã xong</string>
+    <string name="profile_streak">🔥 Chuỗi ngày</string>
+    <string name="profile_calories_burned">Calo đã đốt</string>
+    <string name="profile_settings">Cài đặt</string>
+    <string name="profile_notifications">Thông báo</string>
+    <string name="profile_language">Ngôn ngữ</string>
+    <string name="profile_theme">Giao diện</string>
+    <string name="profile_help">Cần giúp đỡ? 🤔</string>
+    <string name="profile_about">Về HealthMate</string>
+    <string name="profile_body_stats">Chỉ số cơ thể 📏</string>
+    <string name="profile_save">Lưu ✅</string>
+    <string name="profile_logout">Đăng xuất 👋</string>
+    <string name="profile_change_photo">Đổi ảnh đại diện</string>
+    <string name="profile_pick_gallery">Chọn từ thư viện</string>
+    <string name="profile_take_photo">Chụp ảnh</string>
+    <string name="profile_pick_cancel">Hủy</string>
+
+    <!-- ═══ Active Workout Screen ═══ -->
+    <string name="active_workout_pause">Tạm dừng ⏸️</string>
+    <string name="active_workout_resume">Tiếp tục ▶️</string>
+    <string name="active_workout_finish">Hoàn thành ✅</string>
+    <string name="active_workout_exercising">Đang tập nào! 🔥</string>
+    <string name="active_workout_resting">Tạm nghỉ ⏸️</string>
+    <string name="active_workout_back">Quay lại</string>
+
+    <!-- ═══ Register Screen ═══ -->
+    <string name="register_title">Tạo tài khoản mới 🎉</string>
+    <string name="register_subtitle">Bắt đầu hành trình khỏe đẹp cùng HealthMate!</string>
+    <string name="register_name_hint">Họ và tên</string>
+    <string name="register_email_hint">Email của bạn</string>
+    <string name="register_password_hint">Mật khẩu</string>
+    <string name="register_confirm_password_hint">Nhập lại mật khẩu</string>
+    <string name="register_button">Đăng Ký</string>
+    <string name="register_has_account">Đã có tài khoản? </string>
+    <string name="register_login">Đăng nhập ngay!</string>
+    <string name="register_password_mismatch">Mật khẩu không khớp!</string>
+    <string name="register_fields_required">Vui lòng điền đầy đủ thông tin!</string>
+
+    <!-- ═══ New Badges ═══ -->
+    <string name="badge_warrior">Chiến binh bền bỉ 🔥</string>
+    <string name="badge_calorie_destroyer">Kẻ hủy diệt Calo ⚡</string>
+    <string name="badge_early_bird">Gà Trống Hiếu Học 🐓</string>
+    <string name="badge_immortal">Bất Diệt 🛡️</string>
+
+    <!-- ═══ Settings Dialog ═══ -->
+    <string name="settings_development_title">Đang phát triển 🛠️</string>
+    <string name="settings_development_message">Tính năng đang được phát triển nhé! 🛠️</string>
+    <string name="settings_development_dismiss">Đã hiểu!</string>
+
+    <!-- ═══ Profile Dynamic ═══ -->
+    <string name="profile_no_history">Chưa có bài tập nào. Hãy bắt đầu tập luyện nào! 💪</string>
+
+    <!-- ═══ Badge Detail Dialog ═══ -->
+    <string name="badge_status_unlocked">Đã mở khóa ✅</string>
+    <string name="badge_status_locked">Chưa mở khóa</string>
+    <string name="badge_detail_dismiss">Đã hiểu!</string>
+
+    <!-- ═══ Firebase Auth Errors ═══ -->
+    <string name="auth_invalid_email">Email không đúng định dạng</string>
+    <string name="auth_user_not_found">Không tìm thấy tài khoản với email này</string>
+    <string name="auth_wrong_password">Mật khẩu không chính xác</string>
+    <string name="auth_email_already_in_use">Email này đã được sử dụng bởi tài khoản khác</string>
+    <string name="auth_weak_password">Mật khẩu quá yếu, vui lòng chọn mật khẩu mạnh hơn</string>
+    <string name="auth_network_error">Lỗi kết nối mạng, vui lòng thử lại</string>
+    <string name="auth_unknown_error">Đã xảy ra lỗi, vui lòng thử lại</string>
+
+    <!-- ═══ Google Sign-In ═══ -->
+    <string name="login_google_button">Đăng nhập với Google</string>
+    <string name="default_web_client_id" translatable="false">255569319564-dc6g48ecrhjnnqr3jt0lsrjuk57bsimm.apps.googleusercontent.com</string>
+</resources>

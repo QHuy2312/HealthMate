@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ocean_blue">#FF0077B6</color>
+    <color name="ocean_blue_light">#FF00B4D8</color>
+    <color name="mint_green">#FF2EC4B6</color>
+    <color name="mint_green_light">#FF80ED99</color>
+    <color name="coral_accent">#FFFF6B6B</color>
+    <color name="amber_accent">#FFFFBE0B</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="background">#FFF8F9FA</color>
+    <color name="card_background">#FFF1F3F5</color>
+    <color name="text_primary">#FF212529</color>
+    <color name="text_secondary">#FF6C757D</color>
+    <color name="divider">#FFE9ECEF</color>
+</resources>
