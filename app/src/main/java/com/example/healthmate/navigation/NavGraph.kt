@@ -252,11 +252,14 @@ fun AppNavGraph(
             ActiveWorkoutScreen(
                 viewModel = activeWorkoutViewModel,
                 onBack = { navController.popBackStack() },
-                onWorkoutComplete = { exerciseName, calories ->
+                onWorkoutComplete = { exerciseName, _ ->
+                    // Use proportional calories based on actual time elapsed,
+                    // not the static full-workout calories
+                    val actualCalories = activeWorkoutViewModel.getActualCalories()
                     homeViewModel.onWorkoutCompleted(
                         exerciseId = exerciseId,
                         name = exerciseName,
-                        calories = calories,
+                        calories = actualCalories,
                         durationMin = activeWorkoutViewModel.getDurationMin()
                     )
                     navController.popBackStack()

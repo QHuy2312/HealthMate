@@ -40,6 +40,14 @@ class ActiveWorkoutViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun getDurationMin(): Int = durationMin
 
+    /** Proportional calories based on actual time elapsed vs total duration. */
+    fun getActualCalories(): Int {
+        val actualSeconds = totalSeconds - remainingSeconds
+        val actualMinutes = actualSeconds / 60.0
+        return if (durationMin > 0) (actualMinutes / durationMin * calories).toInt().coerceAtLeast(0)
+        else calories
+    }
+
     fun startWorkout() {
         _isRunning.value = true
         countdownJob?.cancel()
