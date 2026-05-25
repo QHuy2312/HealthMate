@@ -121,6 +121,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun setUserEmail(email: String) { _userEmail.value = email }
     fun setMemberSince(date: String) { _memberSince.value = date }
 
+    fun updateUsername(newName: String){
+        _userName.value = newName
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                Firebase.firestore.collection("user").document(uid)
+                    .update("name", newName).await()
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun fetchUserProfile() {
         viewModelScope.launch {
             try {

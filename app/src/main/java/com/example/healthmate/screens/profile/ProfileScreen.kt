@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -30,6 +31,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,6 +55,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -56,7 +63,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.healthmate.R
-import com.example.healthmate.data.model.WorkoutHistoryEntry
 import com.example.healthmate.screens.home.Badge
 import com.example.healthmate.screens.home.HomeViewModel
 import com.example.healthmate.ui.components.BubblyButton
@@ -94,8 +100,11 @@ fun ProfileScreen(
     val totalWorkouts by viewModel.totalWorkouts.collectAsStateWithLifecycle()
 
     var showBodyStatsDialog by remember { mutableStateOf(false) }
-    var showSettingsDialog by remember { mutableStateOf(false) }
-    var settingsDialogTitle by remember { mutableStateOf("") }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+    var showNotificationDialog by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     /* ── Body stats edit dialog ──────────────────────────────────── */
     if (showBodyStatsDialog) {
@@ -110,11 +119,41 @@ fun ProfileScreen(
         )
     }
 
-    /* ── Settings placeholder dialog ─────────────────────────────── */
-    if (showSettingsDialog) {
-        SettingsPlaceholderDialog(
-            title = settingsDialogTitle,
-            onDismiss = { showSettingsDialog = false }
+    /* ── Edit profile dialog ─────────────────────────────── */
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            currentName = userName,
+            onDismiss = {showEditProfileDialog = false},
+            onConfirm = {newName ->
+                viewModel.updateUsername(newName)
+                showEditProfileDialog = false
+            }
+        )
+    }
+
+    if (showNotificationDialog) {
+        NotificationDialog(onDismiss = { showNotificationDialog = false })
+    }
+
+    if (showThemeDialog) {
+        ThemeDialog(onDismiss = { showThemeDialog = false })
+    }
+
+    if (showHelpDialog) {
+        InfoDialog(
+            title = stringResource(R.string.profile_help),
+            content = "Chức năng hỗ trợ bằng chatbot đang trong quá trình nghiên cứu và thử nghiệm hãy chờ phiên bản sau",
+            icon = "🛠️",
+            onDismiss = { showHelpDialog = false }
+        )
+    }
+
+    if (showAboutDialog) {
+        InfoDialog(
+            title = stringResource(R.string.profile_about),
+            content = "HealthMate\nPhiên bản: 1.0.1\n\nỨng dụng theo dõi sức khỏe và thể chất thông minh, giúp bạn duy trì lối sống lành mạnh mỗi ngày. Được phát triển bởi đội ngũ HealthMate-VKU. Gồm 3 thành viên Huy, Mai, Khánh.",
+            icon = "🚀",
+            onDismiss = { showAboutDialog = false }
         )
     }
 
@@ -188,11 +227,21 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Text(
-                text = userName.ifBlank { "HealthMate User" },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically){
+                Text(
+                    text = userName.ifBlank { "HealthMate User" },
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                IconButton(onClick = { showEditProfileDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit profile",
+                        modifier = Modifier.size(20.dp),
+                        tint = OceanBlue
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = userEmail.ifBlank { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.email ?: "" },
@@ -429,35 +478,23 @@ fun ProfileScreen(
             shadowHeight = 5.dp
         ) {
             Column {
-                val notificationsLabel = stringResource(R.string.profile_notifications)
-                val languageLabel = stringResource(R.string.profile_language)
-                val themeLabel = stringResource(R.string.profile_theme)
-                val helpLabel = stringResource(R.string.profile_help)
-                val aboutLabel = stringResource(R.string.profile_about)
+                SettingsRow(Icons.Default.Notifications, stringResource(R.string.profile_notifications)) {
+                    showNotificationDialog = true
+                }
+                HorizontalDivider(color = Divider, thickness = 0.5.dp)
 
-                SettingsRow(Icons.Default.Notifications, notificationsLabel) {
-                    settingsDialogTitle = notificationsLabel
-                    showSettingsDialog = true
+                SettingsRow(Icons.Default.Settings, stringResource(R.string.profile_theme)) {
+                    showThemeDialog = true
                 }
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
-                SettingsRow(Icons.Default.Email, languageLabel) {
-                    settingsDialogTitle = languageLabel
-                    showSettingsDialog = true
+
+                SettingsRow(Icons.Default.Info, stringResource(R.string.profile_help)) {
+                    showHelpDialog = true
                 }
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
-                SettingsRow(Icons.Default.Settings, themeLabel) {
-                    settingsDialogTitle = themeLabel
-                    showSettingsDialog = true
-                }
-                HorizontalDivider(color = Divider, thickness = 0.5.dp)
-                SettingsRow(Icons.Default.Settings, helpLabel) {
-                    settingsDialogTitle = helpLabel
-                    showSettingsDialog = true
-                }
-                HorizontalDivider(color = Divider, thickness = 0.5.dp)
-                SettingsRow(Icons.Default.Person, aboutLabel) {
-                    settingsDialogTitle = aboutLabel
-                    showSettingsDialog = true
+
+                SettingsRow(Icons.Default.Person, stringResource(R.string.profile_about)) {
+                    showAboutDialog = true
                 }
             }
         }
@@ -870,7 +907,185 @@ private fun ActivityHistoryItem(
 }
 
 @Composable
-private fun SettingsPlaceholderDialog(title: String, onDismiss: () -> Unit) {
+private fun EditProfileDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+){
+    var name by remember { mutableStateOf(currentName) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        BubblyCard(
+            cornerRadius = 28.dp,
+            shadowHeight = 6.dp,
+            surfaceColor = MaterialTheme.colorScheme.surface,
+            shadowColor = OceanBlueDark
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "Chỉnh sửa thông tin",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 20.sp
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                BubblyTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = "Tên hiển thị",
+                    keyboardType = KeyboardType.Text
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    BubblyButton(
+                        text = "Huỷ",
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        shadowColor = Divider,
+                        textColor = MaterialTheme.colorScheme.onSurface,
+                        cornerRadius = 16.dp,
+                        fontSize = 15.sp
+                    )
+                    BubblyButton(
+                        text = stringResource(R.string.profile_save),
+                        onClick = { onConfirm(name) },
+                        modifier = Modifier.weight(1f),
+                        enabled = name.isNotBlank(),
+                        containerColor = MintGreen,
+                        shadowColor = MintGreenDark,
+                        cornerRadius = 16.dp,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+private fun NotificationDialog(onDismiss: () -> Unit) {
+    var workoutReminder by remember { mutableStateOf(true) }
+    var waterReminder by remember { mutableStateOf(true) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        BubblyCard(
+            cornerRadius = 28.dp,
+            shadowHeight = 6.dp,
+            surfaceColor = MaterialTheme.colorScheme.surface,
+            shadowColor = OceanBlueDark
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.profile_notifications),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 20.sp
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Nhắc nhở tập luyện", fontWeight = FontWeight.Medium)
+                    Switch(
+                        checked = workoutReminder,
+                        onCheckedChange = { workoutReminder = it },
+                        colors = SwitchDefaults.colors(checkedTrackColor = OceanBlue)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Nhắc nhở uống nước", fontWeight = FontWeight.Medium)
+                    Switch(
+                        checked = waterReminder,
+                        onCheckedChange = { waterReminder = it },
+                        colors = SwitchDefaults.colors(checkedTrackColor = OceanBlue)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                BubblyButton(
+                    text = "Xong",
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = MintGreen,
+                    shadowColor = MintGreenDark,
+                    cornerRadius = 16.dp,
+                    fontSize = 15.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeDialog(onDismiss: () -> Unit) {
+    var selectedTheme by remember { mutableStateOf("Hệ thống") }
+    val themes = listOf("Hệ thống", "Sáng", "Tối")
+
+    Dialog(onDismissRequest = onDismiss) {
+        BubblyCard(
+            cornerRadius = 28.dp,
+            shadowHeight = 6.dp,
+            surfaceColor = MaterialTheme.colorScheme.surface,
+            shadowColor = OceanBlueDark
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.profile_theme),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 20.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                themes.forEach { theme ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedTheme = theme }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (theme == selectedTheme),
+                            onClick = { selectedTheme = theme },
+                            colors = RadioButtonDefaults.colors(selectedColor = OceanBlue)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = theme, fontSize = 16.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                BubblyButton(
+                    text = "Áp dụng",
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = MintGreen,
+                    shadowColor = MintGreenDark,
+                    cornerRadius = 16.dp,
+                    fontSize = 15.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoDialog(title: String, content: String, icon: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         BubblyCard(
             cornerRadius = 28.dp,
@@ -882,27 +1097,28 @@ private fun SettingsPlaceholderDialog(title: String, onDismiss: () -> Unit) {
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "🛠️", fontSize = 48.sp)
+                Text(text = icon, fontSize = 48.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = title,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp
+                    fontSize = 20.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = stringResource(R.string.settings_development_message),
+                    text = content,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 BubblyButton(
-                    text = stringResource(R.string.settings_development_dismiss),
+                    text = "Đóng",
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
                     containerColor = OceanBlue,
                     shadowColor = OceanBlueDark,
-                    shadowHeight = 4.dp,
                     cornerRadius = 16.dp,
                     fontSize = 15.sp
                 )
