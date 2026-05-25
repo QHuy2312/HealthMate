@@ -151,7 +151,7 @@ fun ProfileScreen(
     if (showAboutDialog) {
         InfoDialog(
             title = stringResource(R.string.profile_about),
-            content = "HealthMate\nPhiên bản: 1.0.1\n\nỨng dụng theo dõi sức khỏe và thể chất thông minh, giúp bạn duy trì lối sống lành mạnh mỗi ngày. Được phát triển bởi đội ngũ HealthMate VKU.",
+            content = "HealthMate\nPhiên bản: 1.0.1\n\nỨng dụng theo dõi sức khỏe và thể chất thông minh, giúp bạn duy trì lối sống lành mạnh mỗi ngày. Được phát triển bởi đội ngũ HealthMate-VKU. Gồm 3 thành viên Huy, Mai, Khánh.",
             icon = "🚀",
             onDismiss = { showAboutDialog = false }
         )
