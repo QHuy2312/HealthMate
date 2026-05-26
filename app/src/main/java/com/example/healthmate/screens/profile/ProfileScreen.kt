@@ -1099,7 +1099,6 @@ private fun HealthAiChatDialog(
     onSendMessage: (String) -> Unit,
     onDismiss: () -> Unit
 ){
-    var messageText by remember { mutableStateOf(TextFieldValue("")) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(messages.size, isLoading) {
@@ -1225,52 +1224,10 @@ private fun HealthAiChatDialog(
                     color = Divider,
                     thickness = 0.5.dp
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = messageText,
-                            onValueChange = { messageText = it },
-                            placeholder = {
-                                Text(
-                                    text = "Hỏi về triệu chứng, ăn uống...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
-                                )
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                cursorColor = OceanBlue
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = false,
-                            maxLines = 3
-                        )
-                    }
-
-                    BubblyButton(
-                        text = "Gửi",
-                        onClick = {
-                            if (messageText.text.isNotBlank() && !isLoading) {
-                                onSendMessage(messageText.text)
-                                messageText = TextFieldValue("")
-                            }
-                        },
-                        containerColor = if (messageText.text.isNotBlank() && !isLoading) OceanBlue else Color.Gray,
-                        shadowColor = OceanBlueDark,
-                        cornerRadius = 14.dp,
-                        fontSize = 14.sp,
-                        enabled = messageText.text.isNotBlank() && !isLoading,
-                        modifier = Modifier.width(72.dp)
-                    )
-                }
+                IsolatedChatInput(
+                    isLoading = isLoading,
+                    onSendMessage = { text -> onSendMessage(text) }
+                )
             }
         }
     }
@@ -1316,6 +1273,62 @@ private fun InfoDialog(title: String, content: String, icon: String, onDismiss: 
                 )
             }
         }
+    }
+}
+
+@Composable
+fun IsolatedChatInput(
+    isLoading: Boolean,
+    onSendMessage: (String) -> Unit
+) {
+    // Trạng thái được cô lập hoàn toàn ở đây
+    var messageText by remember { mutableStateOf(TextFieldValue("")) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedTextField(
+                value = messageText,
+                onValueChange = { messageText = it },
+                placeholder = {
+                    Text(
+                        text = "Hỏi về triệu chứng, ăn uống...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    cursorColor = OceanBlue
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = false,
+                maxLines = 3
+            )
+        }
+
+        BubblyButton(
+            text = "Gửi",
+            onClick = {
+                if (messageText.text.isNotBlank() && !isLoading) {
+                    onSendMessage(messageText.text)
+                    messageText = TextFieldValue("") // Reset sau khi gửi
+                }
+            },
+            containerColor = if (messageText.text.isNotBlank() && !isLoading) OceanBlue else Color.Gray,
+            shadowColor = OceanBlueDark,
+            cornerRadius = 16.dp,
+            fontSize = 14.sp,
+            enabled = messageText.text.isNotBlank() && !isLoading,
+            modifier = Modifier.width(72.dp)
+        )
     }
 }
 

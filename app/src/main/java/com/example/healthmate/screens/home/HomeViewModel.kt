@@ -561,7 +561,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val isAiLoading: StateFlow<Boolean> = _isAiLoading.asStateFlow()
 
     private val healthModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
+        modelName = "gemini-2.5-flash",
         apiKey = BuildConfig.GEMINI_API_KEY,
         systemInstruction = content {
             text("Bạn là chuyên gia y tế của HealthMate. Chỉ trả lời câu hỏi về y tế, thể hình, dinh dưỡng. Từ chối mọi chủ đề khác.")
@@ -569,6 +569,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     fun sendChatMessage(text: String){
+        android.util.Log.d("KIEM_TRA_KEY", "Mã Key hiện tại là: ${BuildConfig.GEMINI_API_KEY}")
         if (text.isBlank() || _isAiLoading.value) return
         _chatMessages.value = _chatMessages.value + ChatMessage(text, true)
         viewModelScope.launch {
@@ -578,7 +579,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val aiRely = response.text ?: "Xin lỗi, tôi không hiểu câu hỏi của bạn"
                 _chatMessages.value = _chatMessages.value + ChatMessage(aiRely, false)
             } catch (e: Exception) {
-                _chatMessages.value = _chatMessages.value + ChatMessage("Lỗi kết nối mạng!", false)
+                e.printStackTrace()
+
+                val realError = e.message ?: "Lỗi không xác định"
+                _chatMessages.value = _chatMessages.value + ChatMessage("Lỗi chi tiết: $realError", false)
             } finally {
                 _isAiLoading.value = false
             }
