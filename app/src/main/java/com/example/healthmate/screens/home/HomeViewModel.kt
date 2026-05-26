@@ -3,14 +3,16 @@ package com.example.healthmate.screens.home
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthmate.BuildConfig
 import com.example.healthmate.ai.FitnessClassifier
 import com.example.healthmate.ai.HealthAdvice
 import com.example.healthmate.ai.HealthExpertSystem
 import com.example.healthmate.data.FirestoreRepository
 import com.example.healthmate.data.await
-import com.example.healthmate.data.model.DailyRecord
 import com.example.healthmate.data.model.WorkoutHistoryEntry
 import com.example.healthmate.sensors.StepCounterManager
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -23,6 +25,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+
+data class ChatMessage(
+    val text: String,
+    val isUser: Boolean
+)
 
 data class Badge(
     val name: String,
@@ -539,6 +546,43 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         fitnessClassifier.close()
+    }
+
+    // Chat với AI
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(listOf(
+        ChatMessage("Xin chào! Tôi là Bác sĩ Trợ lý AI của HealthMate. " +
+                "Tôi có thể giúp gì cho bạn về dinh dưỡng, tập luyện hoặc sức khỏe thể chất hôm nay?",
+            false)
+    ))
+    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
+
+    //Đợi phản hồi
+    private val _isAiLoading = MutableStateFlow(false)
+    val isAiLoading: StateFlow<Boolean> = _isAiLoading.asStateFlow()
+
+    private val healthModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = BuildConfig.GEMINI_API_KEY,
+        systemInstruction = content {
+            text("Bạn là chuyên gia y tế của HealthMate. Chỉ trả lời câu hỏi về y tế, thể hình, dinh dưỡng. Từ chối mọi chủ đề khác.")
+        }
+    )
+
+    fun sendChatMessage(text: String){
+        if (text.isBlank() || _isAiLoading.value) return
+        _chatMessages.value = _chatMessages.value + ChatMessage(text, true)
+        viewModelScope.launch {
+            _isAiLoading.value = true
+            try {
+                val response = healthModel.generateContent(text)
+                val aiRely = response.text ?: "Xin lỗi, tôi không hiểu câu hỏi của bạn"
+                _chatMessages.value = _chatMessages.value + ChatMessage(aiRely, false)
+            } catch (e: Exception) {
+                _chatMessages.value = _chatMessages.value + ChatMessage("Lỗi kết nối mạng!", false)
+            } finally {
+                _isAiLoading.value = false
+            }
+        }
     }
 }
 
