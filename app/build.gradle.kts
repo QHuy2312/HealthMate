@@ -18,6 +18,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val geminiApiKey = project.findProperty("GEMINI_API_KEY") as? String ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
@@ -46,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -85,4 +89,6 @@ dependencies {
 
     // Coil (image loading for profile photos)
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

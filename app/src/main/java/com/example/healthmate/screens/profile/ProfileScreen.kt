@@ -21,7 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -32,15 +31,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +68,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.healthmate.R
 import com.example.healthmate.screens.home.Badge
+import com.example.healthmate.screens.home.ChatMessage
 import com.example.healthmate.screens.home.HomeViewModel
 import com.example.healthmate.ui.components.BubblyButton
 import com.example.healthmate.ui.components.BubblyCard
@@ -78,6 +83,7 @@ import com.example.healthmate.ui.theme.MintGreenLight
 import com.example.healthmate.ui.theme.OceanBlue
 import com.example.healthmate.ui.theme.OceanBlueDark
 import com.example.healthmate.ui.theme.OceanBlueLight
+import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileScreen(
@@ -98,12 +104,14 @@ fun ProfileScreen(
     val energyChartValues by viewModel.energyChartValues.collectAsStateWithLifecycle()
     val energyComparisonText by viewModel.energyComparisonText.collectAsStateWithLifecycle()
     val totalWorkouts by viewModel.totalWorkouts.collectAsStateWithLifecycle()
+    val chatMessage by viewModel.chatMessages.collectAsStateWithLifecycle()
+    val isAiLoading by viewModel.isAiLoading.collectAsStateWithLifecycle()
 
     var showBodyStatsDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showNotificationDialog by remember { mutableStateOf(false) }
-    var showHelpDialog by remember { mutableStateOf(false) }
+    var showAiChatDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
 
     /* ── Body stats edit dialog ──────────────────────────────────── */
@@ -139,12 +147,12 @@ fun ProfileScreen(
         ThemeDialog(onDismiss = { showThemeDialog = false })
     }
 
-    if (showHelpDialog) {
-        InfoDialog(
-            title = stringResource(R.string.profile_help),
-            content = "Chức năng hỗ trợ bằng chatbot đang trong quá trình nghiên cứu và thử nghiệm hãy chờ phiên bản sau",
-            icon = "🛠️",
-            onDismiss = { showHelpDialog = false }
+    if (showAiChatDialog) {
+        HealthAiChatDialog(
+            messages = chatMessage,
+            isLoading = isAiLoading,
+            onSendMessage = { text -> viewModel.sendChatMessage(text) },
+            onDismiss = { showAiChatDialog = false }
         )
     }
 
@@ -488,8 +496,8 @@ fun ProfileScreen(
                 }
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
 
-                SettingsRow(Icons.Default.Info, stringResource(R.string.profile_help)) {
-                    showHelpDialog = true
+                SettingsRow(Icons.Default.Info, "Chat với AI Sức khỏe") {
+                    showAiChatDialog = true
                 }
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
 
@@ -1079,6 +1087,190 @@ private fun ThemeDialog(onDismiss: () -> Unit) {
                     cornerRadius = 16.dp,
                     fontSize = 15.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HealthAiChatDialog(
+    messages: List<ChatMessage>,
+    isLoading: Boolean,
+    onSendMessage: (String) -> Unit,
+    onDismiss: () -> Unit
+){
+    var messageText by remember { mutableStateOf(TextFieldValue("")) }
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(messages.size, isLoading) {
+        delay(100)
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
+    Dialog(onDismissRequest = onDismiss) {
+        BubblyCard(
+            cornerRadius = 24.dp,
+            shadowHeight = 6.dp,
+            surfaceColor = MaterialTheme.colorScheme.surface,
+            shadowColor = OceanBlueDark
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "🩺", fontSize = 24.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "AI Bác Sĩ Sức Khỏe",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp,
+                            color = OceanBlue
+                        )
+                        Text(
+                            text = if (isLoading) "AI đang suy nghĩ..." else "Trực tuyến (Chỉ tư vấn y tế)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isLoading) CoralAccent else MintGreenDark,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = OceanBlue,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = Divider,
+                    thickness = 0.5.dp
+                )
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        messages.forEach { msg ->
+                            val alignment = if (msg.isUser) Alignment.End else Alignment.Start
+                            val bubbleColor =
+                                if (msg.isUser) OceanBlue else MaterialTheme.colorScheme.surfaceVariant
+                            val textColor =
+                                if (msg.isUser) Color.White else MaterialTheme.colorScheme.onSurface
+                            val shape = if (msg.isUser) {
+                                RoundedCornerShape(
+                                    topStart = 16.dp,
+                                    topEnd = 16.dp,
+                                    bottomStart = 16.dp,
+                                    bottomEnd = 2.dp
+                                )
+                            } else {
+                                RoundedCornerShape(
+                                    topStart = 16.dp,
+                                    topEnd = 16.dp,
+                                    bottomStart = 2.dp,
+                                    bottomEnd = 16.dp
+                                )
+                            }
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = alignment
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(shape)
+                                        .background(bubbleColor)
+                                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                                ) {
+                                    Text(
+                                        text = msg.text,
+                                        color = textColor,
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                        if (isLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(
+                                        RoundedCornerShape(
+                                            topStart = 16.dp,
+                                            topEnd = 16.dp,
+                                            bottomStart = 2.dp,
+                                            bottomEnd = 16.dp
+                                        )
+                                    )
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    text = "✍️ Chờ một chút...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = Divider,
+                    thickness = 0.5.dp
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = messageText,
+                            onValueChange = { messageText = it },
+                            placeholder = {
+                                Text(
+                                    text = "Hỏi về triệu chứng, ăn uống...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                cursorColor = OceanBlue
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 3
+                        )
+                    }
+
+                    BubblyButton(
+                        text = "Gửi",
+                        onClick = {
+                            if (messageText.text.isNotBlank() && !isLoading) {
+                                onSendMessage(messageText.text)
+                                messageText = TextFieldValue("")
+                            }
+                        },
+                        containerColor = if (messageText.text.isNotBlank() && !isLoading) OceanBlue else Color.Gray,
+                        shadowColor = OceanBlueDark,
+                        cornerRadius = 14.dp,
+                        fontSize = 14.sp,
+                        enabled = messageText.text.isNotBlank() && !isLoading,
+                        modifier = Modifier.width(72.dp)
+                    )
+                }
             }
         }
     }
