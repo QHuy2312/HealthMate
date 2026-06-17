@@ -109,7 +109,6 @@ fun ProfileScreen(
 
     var showBodyStatsDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
-    var showThemeDialog by remember { mutableStateOf(false) }
     var showNotificationDialog by remember { mutableStateOf(false) }
     var showAiChatDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -143,9 +142,7 @@ fun ProfileScreen(
         NotificationDialog(onDismiss = { showNotificationDialog = false })
     }
 
-    if (showThemeDialog) {
-        ThemeDialog(onDismiss = { showThemeDialog = false })
-    }
+
 
     if (showAiChatDialog) {
         HealthAiChatDialog(
@@ -491,10 +488,6 @@ fun ProfileScreen(
                 }
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
 
-                SettingsRow(Icons.Default.Settings, stringResource(R.string.profile_theme)) {
-                    showThemeDialog = true
-                }
-                HorizontalDivider(color = Divider, thickness = 0.5.dp)
 
                 SettingsRow(Icons.Default.Info, "Chat với AI Sức khỏe") {
                     showAiChatDialog = true

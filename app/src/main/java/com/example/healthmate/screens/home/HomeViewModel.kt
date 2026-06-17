@@ -133,7 +133,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                Firebase.firestore.collection("user").document(uid)
+                Firebase.firestore.collection("users").document(uid)
                     .update("name", newName).await()
             } catch (e: Exception){
                 e.printStackTrace()
