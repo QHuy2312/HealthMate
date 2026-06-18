@@ -100,4 +100,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

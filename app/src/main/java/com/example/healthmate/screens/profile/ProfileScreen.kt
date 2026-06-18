@@ -1,5 +1,11 @@
 package com.example.healthmate.screens.profile
 
+import android.Manifest
+import android.content.Context
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +61,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,6 +72,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import com.example.healthmate.R
 import com.example.healthmate.screens.home.Badge
@@ -84,6 +96,7 @@ import com.example.healthmate.ui.theme.OceanBlue
 import com.example.healthmate.ui.theme.OceanBlueDark
 import com.example.healthmate.ui.theme.OceanBlueLight
 import kotlinx.coroutines.delay
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun ProfileScreen(
@@ -969,8 +982,41 @@ private fun EditProfileDialog(
 }
 @Composable
 private fun NotificationDialog(onDismiss: () -> Unit) {
-    var workoutReminder by remember { mutableStateOf(true) }
-    var waterReminder by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("healthmate_prefs", Context.MODE_PRIVATE) }
+
+    var workoutReminder by remember { mutableStateOf(sharedPrefs.getBoolean("workout_remind", false)) }
+    var waterReminder by remember { mutableStateOf(sharedPrefs.getBoolean("water_remind", false)) }
+
+    // Xin quyeen thong bao
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            workoutReminder = false
+            waterReminder = false
+        }
+    }
+
+    fun toggleReminder(type: String, isEnable: Boolean, intervalHours: Long){
+        val workManager = WorkManager.getInstance(context)
+        val workName = "remind_$type"
+
+        if (isEnable){
+            val inputData = Data.Builder().putString("type", type).build()
+            val request = PeriodicWorkRequestBuilder<ReminderWorker>(intervalHours, TimeUnit.HOURS)
+                .setInputData(inputData)
+                .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                workName,
+                ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+        }else{
+            workManager.cancelUniqueWork(workName)
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         BubblyCard(
@@ -987,30 +1033,46 @@ private fun NotificationDialog(onDismiss: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Nhắc nhở tập luyện", fontWeight = FontWeight.Medium)
+                    Text(text = "Nhắc nhở tập luyện (Mỗi 24h)", fontWeight = FontWeight.Medium)
                     Switch(
                         checked = workoutReminder,
-                        onCheckedChange = { workoutReminder = it },
+                        onCheckedChange = { isChecked ->
+                            if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            workoutReminder = isChecked
+                            sharedPrefs.edit().putBoolean("workout_remind", isChecked).apply()
+                            toggleReminder("workout", isChecked, 24)
+                        },
                         colors = SwitchDefaults.colors(checkedTrackColor = OceanBlue)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Công tắc Uống nước
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Nhắc nhở uống nước", fontWeight = FontWeight.Medium)
+                    Text(text = "Nhắc nhở uống nước (Mỗi 2h)", fontWeight = FontWeight.Medium)
                     Switch(
                         checked = waterReminder,
-                        onCheckedChange = { waterReminder = it },
+                        onCheckedChange = { isChecked ->
+                            if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            waterReminder = isChecked
+                            sharedPrefs.edit().putBoolean("water_remind", isChecked).apply()
+                            toggleReminder("water", isChecked, 2)
+                        },
                         colors = SwitchDefaults.colors(checkedTrackColor = OceanBlue)
                     )
                 }
@@ -1019,60 +1081,6 @@ private fun NotificationDialog(onDismiss: () -> Unit) {
 
                 BubblyButton(
                     text = "Xong",
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MintGreen,
-                    shadowColor = MintGreenDark,
-                    cornerRadius = 16.dp,
-                    fontSize = 15.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ThemeDialog(onDismiss: () -> Unit) {
-    var selectedTheme by remember { mutableStateOf("Hệ thống") }
-    val themes = listOf("Hệ thống", "Sáng", "Tối")
-
-    Dialog(onDismissRequest = onDismiss) {
-        BubblyCard(
-            cornerRadius = 28.dp,
-            shadowHeight = 6.dp,
-            surfaceColor = MaterialTheme.colorScheme.surface,
-            shadowColor = OceanBlueDark
-        ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = stringResource(R.string.profile_theme),
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 20.sp
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                themes.forEach { theme ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedTheme = theme }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = (theme == selectedTheme),
-                            onClick = { selectedTheme = theme },
-                            colors = RadioButtonDefaults.colors(selectedColor = OceanBlue)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = theme, fontSize = 16.sp)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                BubblyButton(
-                    text = "Áp dụng",
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
                     containerColor = MintGreen,
