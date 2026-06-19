@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.healthmate.data.AuthRepository
 import com.example.healthmate.data.AuthResult
+import com.example.healthmate.data.FirestoreRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,15 @@ class LoginViewModel : ViewModel() {
             _isLoading.value = true
             _authError.value = null
             when (val result = repository.signInWithEmailAndPassword(email, password)) {
-                is AuthResult.Success -> _authSuccess.value = true
+                is AuthResult.Success -> {
+                    val uid = FirebaseAuth.getInstance().currentUser?.uid
+                    if (uid != null && FirestoreRepository.isUserDisabled(uid)) {
+                        FirebaseAuth.getInstance().signOut()
+                        _authError.value = "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên."
+                    } else {
+                        _authSuccess.value = true
+                    }
+                }
                 is AuthResult.Error -> _authError.value = result.message
             }
             _isLoading.value = false
@@ -46,16 +56,20 @@ class LoginViewModel : ViewModel() {
                 is AuthResult.Success -> {
                     val uid = repository.currentUser?.uid
                     if (uid != null) {
-                        // Default to false (user exists) — safe fallback.
-                        // Only set true if we positively confirm the document is missing.
-                        // Network errors are NOT treated as "needs onboarding".
-                        _needsOnboarding.value = try {
-                            !repository.checkUserDocumentExists(uid)
-                        } catch (_: Exception) {
-                            false
+                        if (FirestoreRepository.isUserDisabled(uid)) {
+                            FirebaseAuth.getInstance().signOut()
+                            _authError.value = "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên."
+                        } else {
+                            _needsOnboarding.value = try {
+                                !repository.checkUserDocumentExists(uid)
+                            } catch (_: Exception) {
+                                false
+                            }
+                            _authSuccess.value = true
                         }
+                    } else {
+                        _authSuccess.value = true
                     }
-                    _authSuccess.value = true
                 }
                 is AuthResult.Error -> _authError.value = result.message
             }

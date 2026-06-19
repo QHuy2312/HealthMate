@@ -41,7 +41,8 @@ class AuthRepository {
                 "weightKg" to 0.0,
                 "totalWorkouts" to 0L,
                 "totalCaloriesBurned" to 0L,
-                "currentStreak" to 0L
+                "currentStreak" to 0L,
+                "role" to "user"
                 // photoUrl is NOT set here — populated later by uploadProfileImage() or syncGooglePhotoToFirestore()
             )
             firestore.collection("users").document(uid).set(userData).await()

@@ -33,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.healthmate.screens.activeworkout.ActiveWorkoutScreen
 import com.example.healthmate.screens.activeworkout.ActiveWorkoutViewModel
+import com.example.healthmate.screens.admin.AdminScreen
 import com.example.healthmate.screens.home.HomeScreen
 import com.example.healthmate.screens.home.HomeViewModel
 import com.example.healthmate.screens.login.LoginScreen
@@ -233,6 +234,7 @@ fun AppNavGraph(
         /* ── Profile ───────────────────────────────────────────────── */
         composable(Screen.Profile.route) { _ ->
             ProfileScreen(
+                onNavigateToAdmin = { navController.navigate(Screen.Admin.route) },
                 onLogout = {
                     FirebaseAuth.getInstance().signOut()
                     homeViewModel.clearAllData()
@@ -264,6 +266,13 @@ fun AppNavGraph(
                     )
                     navController.popBackStack()
                 }
+            )
+        }
+
+        /* ── Admin ────────────────────────────────────────────────────── */
+        composable(Screen.Admin.route) {
+            AdminScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

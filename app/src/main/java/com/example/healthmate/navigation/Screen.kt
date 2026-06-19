@@ -22,6 +22,7 @@ sealed class Screen(val route: String) {
     data object Register : Screen("register")
     data object Onboarding : Screen("onboarding")
     data object ActiveWorkout : Screen("active_workout/{exerciseName}/{durationMin}/{calories}/{exerciseId}")
+    data object Admin : Screen("admin")
 
     /* ── Bottom-nav destinations ──────────────────────────────────── */
     data object Home : Screen("home"), BottomNavItem {

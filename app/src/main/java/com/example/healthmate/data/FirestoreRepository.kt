@@ -13,6 +13,28 @@ import java.time.DayOfWeek
 import java.util.Calendar
 import java.util.Locale
 
+data class UserProfileData(
+    val uid: String = "",
+    val name: String = "",
+    val email: String = "",
+    val heightCm: Double = 0.0,
+    val weightKg: Double = 0.0,
+    val photoUrl: String? = null,
+    val totalWorkouts: Int = 0,
+    val totalCaloriesBurned: Int = 0,
+    val currentStreak: Int = 0,
+    val memberSince: String = "",
+    val role: String = "user",
+    val disabled: Boolean = false,
+    val badgeStepsUnlocked: Boolean = false,
+    val badgeWaterUnlocked: Boolean = false,
+    val badgeWarriorUnlocked: Boolean = false,
+    val badgeCalorieDestroyerUnlocked: Boolean = false,
+    val badgeEarlyBirdUnlocked: Boolean = false,
+    val badgeImmortalUnlocked: Boolean = false,
+    val needsBadgeReset: Boolean = false
+)
+
 object FirestoreRepository {
 
     private val firestore: FirebaseFirestore = Firebase.firestore
@@ -313,6 +335,186 @@ object FirestoreRepository {
     suspend fun checkUserDocumentExists(uid: String): Boolean {
         return try {
             userDoc(uid).get().await().exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // ── User Profile (moved from HomeViewModel) ───────────────────────
+
+    suspend fun updateBadgeField(uid: String, field: String, value: Boolean) {
+        try {
+            userDoc(uid).update(field, value).await()
+        } catch (_: Exception) { }
+    }
+
+    suspend fun updateUsername(uid: String, newName: String) {
+        try {
+            userDoc(uid).update("name", newName).await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun fetchUserProfile(uid: String): UserProfileData? {
+        return try {
+            val doc = userDoc(uid).get().await()
+            if (!doc.exists()) return null
+
+            val todayStr = dateFormat.format(java.util.Date())
+            val lastReset = doc.getString("lastBadgeResetDate") ?: ""
+            val needsReset = lastReset != todayStr
+
+            if (needsReset) {
+                userDoc(uid).update(
+                    mapOf(
+                        "badgeStepsUnlocked" to false,
+                        "badgeWaterUnlocked" to false,
+                        "badgeWarriorUnlocked" to false,
+                        "badgeCalorieDestroyerUnlocked" to false,
+                        "badgeEarlyBirdUnlocked" to false,
+                        "badgeImmortalUnlocked" to false,
+                        "lastBadgeResetDate" to todayStr
+                    )
+                ).await()
+            }
+
+            val memberSince = doc.getTimestamp("createdAt")?.let { ts ->
+                val cal = java.util.Calendar.getInstance()
+                cal.timeInMillis = ts.toDate().time
+                val month = cal.get(java.util.Calendar.MONTH) + 1
+                val year = cal.get(java.util.Calendar.YEAR)
+                "Tháng $month, $year"
+            } ?: ""
+
+            UserProfileData(
+                uid = uid,
+                name = doc.getString("name") ?: "",
+                heightCm = doc.getDouble("heightCm") ?: 0.0,
+                weightKg = doc.getDouble("weightKg") ?: 0.0,
+                photoUrl = doc.getString("photoUrl"),
+                totalWorkouts = (doc.getLong("totalWorkouts") ?: 0L).toInt(),
+                totalCaloriesBurned = (doc.getLong("totalCaloriesBurned") ?: 0L).toInt(),
+                currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                memberSince = memberSince,
+                role = doc.getString("role") ?: "user",
+                disabled = doc.getBoolean("disabled") == true,
+                badgeStepsUnlocked = doc.getBoolean("badgeStepsUnlocked") == true,
+                badgeWaterUnlocked = doc.getBoolean("badgeWaterUnlocked") == true,
+                badgeWarriorUnlocked = doc.getBoolean("badgeWarriorUnlocked") == true,
+                badgeCalorieDestroyerUnlocked = doc.getBoolean("badgeCalorieDestroyerUnlocked") == true,
+                badgeEarlyBirdUnlocked = doc.getBoolean("badgeEarlyBirdUnlocked") == true,
+                badgeImmortalUnlocked = doc.getBoolean("badgeImmortalUnlocked") == true,
+                needsBadgeReset = needsReset
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun saveOnboarding(uid: String, weightKg: Double, heightCm: Double) {
+        try {
+            userDoc(uid).update(
+                mapOf("weightKg" to weightKg, "heightCm" to heightCm, "onboardingCompleted" to true)
+            ).await()
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    suspend fun initializeNewUserDocument(
+        uid: String, name: String, email: String,
+        weightKg: Double, heightCm: Double, googlePhotoUrl: String?
+    ) {
+        try {
+            val docRef = userDoc(uid)
+            val snapshot = docRef.get().await()
+            if (!snapshot.exists()) {
+                val initialData = mutableMapOf<String, Any>(
+                    "name" to name,
+                    "email" to email,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                    "onboardingCompleted" to true,
+                    "heightCm" to heightCm,
+                    "weightKg" to weightKg,
+                    "totalWorkouts" to 0L,
+                    "totalCaloriesBurned" to 0L,
+                    "currentStreak" to 0L,
+                    "role" to "user",
+                    "badgeStepsUnlocked" to false,
+                    "badgeWaterUnlocked" to false,
+                    "badgeWarriorUnlocked" to false,
+                    "badgeCalorieDestroyerUnlocked" to false,
+                    "badgeEarlyBirdUnlocked" to false,
+                    "badgeImmortalUnlocked" to false,
+                    "lastBadgeResetDate" to dateFormat.format(java.util.Date())
+                )
+                if (!googlePhotoUrl.isNullOrBlank()) {
+                    initialData["photoUrl"] = googlePhotoUrl
+                }
+                docRef.set(initialData).await()
+            } else {
+                docRef.update(mapOf(
+                    "weightKg" to weightKg, "heightCm" to heightCm, "onboardingCompleted" to true
+                )).await()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    // ── Admin: Fetch all users ────────────────────────────────────────
+
+    suspend fun getAllUsers(): List<UserProfileData> {
+        return try {
+            val snapshot = firestore.collection("users").get().await()
+            snapshot.documents.mapNotNull { doc ->
+                val memberSince = doc.getTimestamp("createdAt")?.let { ts ->
+                    val cal = java.util.Calendar.getInstance()
+                    cal.timeInMillis = ts.toDate().time
+                    val month = cal.get(java.util.Calendar.MONTH) + 1
+                    val year = cal.get(java.util.Calendar.YEAR)
+                    "Tháng $month, $year"
+                } ?: ""
+                UserProfileData(
+                    uid = doc.id,
+                    name = doc.getString("name") ?: "",
+                    heightCm = doc.getDouble("heightCm") ?: 0.0,
+                    weightKg = doc.getDouble("weightKg") ?: 0.0,
+                    photoUrl = doc.getString("photoUrl"),
+                    totalWorkouts = (doc.getLong("totalWorkouts") ?: 0L).toInt(),
+                    totalCaloriesBurned = (doc.getLong("totalCaloriesBurned") ?: 0L).toInt(),
+                    currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                    memberSince = memberSince,
+                    role = doc.getString("role") ?: "user",
+                    disabled = doc.getBoolean("disabled") == true,
+                    badgeStepsUnlocked = doc.getBoolean("badgeStepsUnlocked") == true,
+                    badgeWaterUnlocked = doc.getBoolean("badgeWaterUnlocked") == true,
+                    badgeWarriorUnlocked = doc.getBoolean("badgeWarriorUnlocked") == true,
+                    badgeCalorieDestroyerUnlocked = doc.getBoolean("badgeCalorieDestroyerUnlocked") == true,
+                    badgeEarlyBirdUnlocked = doc.getBoolean("badgeEarlyBirdUnlocked") == true,
+                    badgeImmortalUnlocked = doc.getBoolean("badgeImmortalUnlocked") == true
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun setUserDisabled(uid: String, disabled: Boolean) {
+        try {
+            userDoc(uid).update("disabled", disabled).await()
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    suspend fun deleteUserDocument(uid: String) {
+        try {
+            userDoc(uid).delete().await()
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    suspend fun isUserDisabled(uid: String): Boolean {
+        return try {
+            val doc = userDoc(uid).get().await()
+            doc.getBoolean("disabled") == true
         } catch (e: Exception) {
             false
         }

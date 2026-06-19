@@ -101,6 +101,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
+    onNavigateToAdmin: () -> Unit = {},
     viewModel: HomeViewModel = viewModel()
 ) {
     val badges by viewModel.badges.collectAsStateWithLifecycle()
@@ -119,6 +120,7 @@ fun ProfileScreen(
     val totalWorkouts by viewModel.totalWorkouts.collectAsStateWithLifecycle()
     val chatMessage by viewModel.chatMessages.collectAsStateWithLifecycle()
     val isAiLoading by viewModel.isAiLoading.collectAsStateWithLifecycle()
+    val role by viewModel.role.collectAsStateWithLifecycle()
 
     var showBodyStatsDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
@@ -496,6 +498,12 @@ fun ProfileScreen(
             shadowHeight = 5.dp
         ) {
             Column {
+                if (role == "admin") {
+                    SettingsRow(Icons.Default.Star, "Quản trị viên") {
+                        onNavigateToAdmin()
+                    }
+                    HorizontalDivider(color = Divider, thickness = 0.5.dp)
+                }
                 SettingsRow(Icons.Default.Notifications, stringResource(R.string.profile_notifications)) {
                     showNotificationDialog = true
                 }

@@ -124,6 +124,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _profileLoaded = MutableStateFlow(false)
     val profileLoaded: StateFlow<Boolean> = _profileLoaded.asStateFlow()
 
+    private val _role = MutableStateFlow("user")
+    val role: StateFlow<String> = _role.asStateFlow()
+
     fun setUserName(name: String) { _userName.value = name }
     fun setUserEmail(email: String) { _userEmail.value = email }
     fun setMemberSince(date: String) { _memberSince.value = date }
@@ -163,6 +166,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 doc.getLong("totalWorkouts")?.let { _totalWorkouts.value = it.toInt() }
                 doc.getLong("totalCaloriesBurned")?.let { _totalCaloriesBurnedLifetime.value = it.toInt() }
                 doc.getLong("currentStreak")?.let { _streak.value = it.toInt() }
+                doc.getString("role")?.let { _role.value = it }
 
                 // Restore ALL badge unlock states from Firestore
                 val unlocked = mutableSetOf<String>()
@@ -537,7 +541,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _totalCaloriesBurnedLifetime.value = 0; _streak.value = 0
         _weightKg.value = 0.0; _heightCm.value = 0.0; _heartRate.value = 72
         _fitnessLevel.value = 1; _age.value = DEFAULT_AGE
-        _workoutsTodayCount.value = 0
+        _workoutsTodayCount.value = 0; _role.value = "user"
         _unlockedBadgeNames.value = emptySet()
         _badges.value = BADGE_DEFAULTS
         _badgeQueue.value = emptyList()
@@ -569,7 +573,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     fun sendChatMessage(text: String){
-        android.util.Log.d("KIEM_TRA_KEY", "Mã Key hiện tại là: ${BuildConfig.GEMINI_API_KEY}")
         if (text.isBlank() || _isAiLoading.value) return
         _chatMessages.value = _chatMessages.value + ChatMessage(text, true)
         viewModelScope.launch {
